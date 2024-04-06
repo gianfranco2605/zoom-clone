@@ -5,6 +5,9 @@ import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 
 interface MeetingModalProps {
+  onClose: () => void;
+  isOpen: boolean;
+  title: string;
   className?: string;
   children?: ReactNode;
   handleClick: () => void;
