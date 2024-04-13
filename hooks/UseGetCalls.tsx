@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 
 export const useGetCalls = () => {
   const [calls, setCalls] = useState<Call[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const client = useStreamVideoClient();
   const { user } = useUser();
 
   useEffect(() => {
     const loadCalls = async () => {
       if (!client || !user?.id) return;
-      setLoading(true);
+      setIsLoading(true);
 
       try {
         const { calls } = await client.queryCalls({
@@ -28,11 +28,25 @@ export const useGetCalls = () => {
       } catch (error) {
         console.log(error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
     loadCalls();
   }, [client, user?.id]);
 
-  return calls;
+  const now = new Date();
+
+  const endedCalls = calls.filter(({ state: { startsAt, endedAt } }: Call) => {
+    return (startsAt && new Date(startsAt) < now) || !!endedAt;
+  });
+  const upcomingCalls = calls.filter(({ state: { startsAt } }: Call) => {
+    return startsAt && new Date(startsAt) > now;
+  });
+
+  return {
+    endedCalls,
+    upcomingCalls,
+    callRecordings: calls,
+    isLoading,
+  };
 };
